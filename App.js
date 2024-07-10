@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
+  FlatList
 } from "react-native";
 
 // Importando a conexão com o Firestore e métodos específicos
@@ -17,12 +18,17 @@ import {
   setDoc,
   collection,
   addDoc,
+  getDocs
 } from "firebase/firestore";
+
+import {UsersList} from './src/users' // Importando o componente UsersList para exibir os usuários
 
 export default function fire() {
   const [nome, setNome] = useState(""); // Estado para armazenar o nome do usuário
   const [idade, setIdade] = useState(""); // Estado para armazenar a idade do usuário
   const [cargo, setCargo] = useState(""); // Estado para armazenar o cargo do usuário
+
+  const [users, setUsers] = useState([]) // Estado para armazenar a lista de usuários
 
   const [showForm, setShowForm] = useState(true); // Estado para controlar a exibição do formulário
 
@@ -30,10 +36,41 @@ export default function fire() {
   useEffect(() => {
     // Função assíncrona para obter dados do Firestore
     async function getDados() {
-      // Método para obter documento em tempo real
-      // onSnapshot(doc(db, "users", "1"), (doc) => {
-      //   setNome(doc.data()?.nome); // Atualiza o estado com o nome do documento
-      // });
+      const usersRef =  collection(db, "users") // Referência para a coleção "users" no Firestore
+
+      onSnapshot(usersRef,(snapshot) =>{
+          let lista = [];
+        snapshot.forEach((doc) => {
+          lista.push({
+            id:doc.id,
+            nome: doc.data().nome,
+            idade: doc.data().idade,
+            cargo: doc.data().cargo
+          })
+        })
+
+        setUsers(lista) // Atualiza o estado com a lista de usuários obtida
+      })
+
+      // Código comentado para obter documentos sem ser em tempo real
+      // getDocs(usersRef)
+      // .then((snapshot) =>{
+      //   let lista = [];
+      //   snapshot.forEach((doc) => {
+      //     lista.push({
+      //       id:doc.id,
+      //       nome: doc.data().nome,
+      //       idade: doc.data().idade,
+      //       cargo: doc.data().cargo
+      //     })
+      //   })
+
+      //   setUsers(lista)
+      // })
+      // .catch((err) =>{
+      //   console.log(err)
+      // })
+
     }
 
     getDados(); // Chama a função para buscar dados
@@ -104,6 +141,16 @@ export default function fire() {
           {showForm ? "Esconder formulário" : "Mostrar formulário"}
         </Text>
       </TouchableOpacity>
+
+      <Text style={{marginTop: 14, marginLeft: 8, fontSize: 20, color: '#000 '}}>Usuários</Text>
+
+      {/* Lista de usuários cadastrados */}
+      <FlatList
+        style={styles.list}
+        data={users} // Dados da lista de usuários
+        keyExtractor={(item) => String(item.id)} // Chave única para cada item da lista
+        renderItem={({item}) => <UsersList data={item}/>} // Renderiza o componente UsersList para cada item
+      />
     </View>
   );
 }
@@ -136,4 +183,9 @@ const styles = StyleSheet.create({
     marginBottom: 4, // Margem inferior para o rótulo
     marginLeft: 8, // Margem esquerda para o rótulo
   },
+  list:{
+    marginTop: 8, // Margem superior para a lista de usuários
+    marginLeft: 8, // Margem esquerda para a lista de usuários
+    marginRight: 8, // Margem direita para a lista de usuários
+  }
 });
