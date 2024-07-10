@@ -1,70 +1,108 @@
 // Importando as dependências necessárias do React e React Native
-import React, { useEffect, useState, } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
 
 // Importando a conexão com o Firestore e métodos específicos
-import { db } from './src/firebaseConnection';
-import { doc, getDoc, onSnapshot, setDoc, collection, addDoc } from 'firebase/firestore';
+import { db } from "./src/firebaseConnection";
+import {
+  doc,
+  getDoc,
+  onSnapshot,
+  setDoc,
+  collection,
+  addDoc,
+} from "firebase/firestore";
 
 export default function fire() {
-  const [nome, setNome] = useState("Carregando..."); // Estado inicial com valor "Carregando..."
+  const [nome, setNome] = useState(""); // Estado para armazenar o nome do usuário
+  const [idade, setIdade] = useState(""); // Estado para armazenar a idade do usuário
+  const [cargo, setCargo] = useState(""); // Estado para armazenar o cargo do usuário
+
+  const [showForm, setShowForm] = useState(true); // Estado para controlar a exibição do formulário
 
   // useEffect para buscar dados quando o componente for montado
   useEffect(() => {
     // Função assíncrona para obter dados do Firestore
     async function getDados() {
-      // Comentado: Método para obter documento uma vez
-      // const docref = doc(db, "users", "2");
-      // getDoc(docref)
-      //   .then((snapshot) => { 
-      //     setNome(snapshot.data()?.nome);
-      //   })
-      //   .catch((err) => {
-      //     console.log("error: ");
-      //     console.log(err);
-      //   });
-
       // Método para obter documento em tempo real
-      onSnapshot(doc(db, "users", "1"), (doc) => {
-        setNome(doc.data()?.nome); // Atualiza o estado com o nome do documento
-      });
+      // onSnapshot(doc(db, "users", "1"), (doc) => {
+      //   setNome(doc.data()?.nome); // Atualiza o estado com o nome do documento
+      // });
     }
 
     getDados(); // Chama a função para buscar dados
-
   }, []); // A lista de dependências vazia significa que o efeito só roda uma vez, quando o componente é montado
 
   // Função assíncrona para lidar com o registro de um novo usuário no Firestore
-async function handleRegister() {
-    // Exemplo comentado de como definir um documento com um ID específico
-    // await setDoc(doc(db, "users", "3"), {
-    //   nome: "jose",
-    //   idade: "30",
-    //   cargo: "Backend"
-    // })
-    // .then(() => {
-    //   console.log("cadastrado com sucesso")  Mensagem de sucesso no console
-    // })
-    // .catch((erro) => {
-    //   console(erro)  Exibe o erro no console
-    // })
-
+  async function handleRegister() {
     // Adicionando um novo documento na coleção "users" com um ID gerado automaticamente
     await addDoc(collection(db, "users"), {
-        nome: "fulano", // Nome do usuário
-        idade: "25", // Idade do usuário
-        cargo: "estagiario" // Cargo do usuário
-    });
-}
+      nome: nome, // Nome do usuário
+      idade: idade, // Idade do usuário
+      cargo: cargo, // Cargo do usuário
+    })
+      .then(() => {
+        alert("CADASTRADO COM SUCESSO"); // Exibe mensagem de sucesso
+        setNome(""); // Limpa o campo de nome
+        setIdade(""); // Limpa o campo de idade
+        setCargo(""); // Limpa o campo de cargo
+      })
+      .catch((err) => {
+        console.log(err); // Exibe erro no console
+      });
+  }
+
+  // Função para alternar a exibição do formulário
+  function handleToggle() {
+    setShowForm(!showForm); // Inverte o estado de exibição do formulário
+  }
 
   return (
     // Container principal que centraliza seu conteúdo
     <View style={styles.container}>
-      {/* Exibindo o nome obtido do Firestore */}
-      <Text style={{ fontSize: 24 }}>Nome: {nome}</Text>
+      {/* Exibindo o formulário de entrada de dados */}
+      {showForm && (
+        <View>
+          <Text style={styles.label}>Nome:</Text>
 
-      <TouchableOpacity style={styles.button} onPress={handleRegister}> 
-        <Text style={styles.buttonText}>Adicionar</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Digite seu nome..."
+            value={nome}
+            onChangeText={(text) => setNome(text)}
+          />
+
+          <Text style={styles.label}>Idade:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Digite sua idade..."
+            value={idade}
+            onChangeText={(text) => setIdade(text)}
+          />
+
+          <Text style={styles.label}>Cargo:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Digite seu cargo..."
+            value={cargo}
+            onChangeText={(text) => setCargo(text)}
+          />
+
+          <TouchableOpacity style={styles.button} onPress={handleRegister}>
+            <Text style={styles.buttonText}>Adicionar</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      <TouchableOpacity style={{ marginTop: 8 }} onPress={handleToggle}>
+        <Text style={{ textAlign: "center", color: "#000" }}>
+          {showForm ? "Esconder formulário" : "Mostrar formulário"}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -76,12 +114,26 @@ const styles = StyleSheet.create({
     flex: 1, // O container ocupa todo o espaço disponível
     paddingTop: 40, // Espaçamento superior para evitar sobreposição com a barra de status
   },
-  button:{
-    backgroundColor: '#000',
-    alignSelf: 'flex-start'
+  button: {
+    backgroundColor: "#000", // Cor de fundo preta para o botão
+    marginLeft: 8, // Margem esquerda para o botão
+    marginRight: 8, // Margem direita para o botão
   },
-  buttonText:{
-    padding: 8,
-    color: '#fff'
+  buttonText: {
+    padding: 8, // Espaçamento interno do texto do botão
+    color: "#fff", // Cor do texto do botão branca
+    textAlign: "center", // Centraliza o texto do botão
+  },
+  input: {
+    borderWidth: 1, // Largura da borda do campo de entrada
+    marginLeft: 8, // Margem esquerda para o campo de entrada
+    marginRight: 8, // Margem direita para o campo de entrada
+    marginBottom: 8, // Margem inferior para o campo de entrada
+  },
+  label: {
+    color: "#000", // Cor do texto do rótulo preta
+    fontSize: 18, // Tamanho da fonte do rótulo
+    marginBottom: 4, // Margem inferior para o rótulo
+    marginLeft: 8, // Margem esquerda para o rótulo
   },
 });
