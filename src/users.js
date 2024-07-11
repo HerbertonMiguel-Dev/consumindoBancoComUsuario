@@ -7,14 +7,19 @@ import {
   TouchableOpacity,
 } from "react-native";
 
-import {db} from './firebaseConnection'
-import {deleteDoc, doc} from 'firebase/firestore'
+import { db } from './firebaseConnection';
+import { deleteDoc, doc } from 'firebase/firestore';
 
-export function UsersList({ data }) {
+export function UsersList({ data, handleEdit }) {
   // Função assíncrona para deletar um usuário
   async function handleDeleteItem() {
-    const docRef = doc(db, "users", data.id) // Referência ao documento do usuário no Firestore
-    await deleteDoc(docRef) // Deletando o documento do Firestore
+    const docRef = doc(db, "users", data.id); // Referência ao documento do usuário no Firestore
+    await deleteDoc(docRef); // Deletando o documento do Firestore
+  }
+
+  // Função para preparar a edição do usuário
+  function handleEditUser() {
+    handleEdit(data);
   }
 
   return (
@@ -22,8 +27,15 @@ export function UsersList({ data }) {
       <Text style={styles.item}>Nome: {data.nome}</Text>
       <Text style={styles.item}>Idade: {data.idade}</Text>
       <Text style={styles.item}>Cargo: {data.cargo}</Text>
+
+      {/* Botão para deletar usuário */}
       <TouchableOpacity style={styles.button} onPress={handleDeleteItem}>
         <Text style={styles.buttonText}>Deletar usuario</Text>
+      </TouchableOpacity>
+
+      {/* Botão para editar usuário */}
+      <TouchableOpacity style={styles.buttonEdit} onPress={handleEditUser}>
+        <Text style={styles.buttonText}>Editar usuario </Text>
       </TouchableOpacity>
     </View>
   );
@@ -52,5 +64,12 @@ const styles = StyleSheet.create({
     color: "#fff", // Cor do texto
     paddingLeft: 8, // Espaçamento à esquerda do texto do botão
     paddingRight: 8, // Espaçamento à direita do texto do botão
+  },
+  buttonEdit: {
+    backgroundColor: "#000", // Cor de fundo do botão
+    alignSelf: "flex-start", // Alinhamento do botão
+    padding: 4, // Espaçamento interno do botão
+    borderRadius: 4, // Bordas arredondadas do botão
+    marginTop: 16, // Margem superior do botão
   },
 });

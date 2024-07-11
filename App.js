@@ -18,17 +18,19 @@ import {
   setDoc,
   collection,
   addDoc,
-  getDocs
+  getDocs,
+  updateDoc
 } from "firebase/firestore";
 
-import {UsersList} from './src/users' // Importando o componente UsersList para exibir os usuários
+import { UsersList } from './src/users'; // Importando o componente UsersList para exibir os usuários
 
 export default function fire() {
   const [nome, setNome] = useState(""); // Estado para armazenar o nome do usuário
   const [idade, setIdade] = useState(""); // Estado para armazenar a idade do usuário
   const [cargo, setCargo] = useState(""); // Estado para armazenar o cargo do usuário
+  const [isEditing, setIsEditing] = useState(""); // Estado para armazenar o ID do usuário em edição
 
-  const [users, setUsers] = useState([]) // Estado para armazenar a lista de usuários
+  const [users, setUsers] = useState([]); // Estado para armazenar a lista de usuários
 
   const [showForm, setShowForm] = useState(true); // Estado para controlar a exibição do formulário
 
@@ -36,21 +38,22 @@ export default function fire() {
   useEffect(() => {
     // Função assíncrona para obter dados do Firestore
     async function getDados() {
-      const usersRef =  collection(db, "users") // Referência para a coleção "users" no Firestore
+      const usersRef = collection(db, "users"); // Referência para a coleção "users" no Firestore
 
-      onSnapshot(usersRef,(snapshot) =>{
-          let lista = [];
+      // Escuta em tempo real para a coleção "users"
+      onSnapshot(usersRef, (snapshot) => {
+        let lista = [];
         snapshot.forEach((doc) => {
           lista.push({
-            id:doc.id,
+            id: doc.id,
             nome: doc.data().nome,
             idade: doc.data().idade,
             cargo: doc.data().cargo
-          })
-        })
+          });
+        });
 
-        setUsers(lista) // Atualiza o estado com a lista de usuários obtida
-      })
+        setUsers(lista); // Atualiza o estado com a lista de usuários obtida
+      });
 
       // Código comentado para obter documentos sem ser em tempo real
       // getDocs(usersRef)
@@ -70,7 +73,6 @@ export default function fire() {
       // .catch((err) =>{
       //   console.log(err)
       // })
-
     }
 
     getDados(); // Chama a função para buscar dados
@@ -98,6 +100,30 @@ export default function fire() {
   // Função para alternar a exibição do formulário
   function handleToggle() {
     setShowForm(!showForm); // Inverte o estado de exibição do formulário
+  }
+
+  // Função para preparar a edição de um usuário
+  function editUser(data) {
+    setNome(data.nome);
+    setIdade(data.idade);
+    setCargo(data.cargo);
+    setIsEditing(data.id); // Armazena o ID do usuário em edição
+  }
+
+  // Função assíncrona para editar um usuário
+  async function handleEditUser() {
+    const docRef = doc(db, "users", isEditing); // Referência ao documento do usuário no Firestore
+    await updateDoc(docRef, {
+      nome: nome, // Atualiza o nome do usuário
+      idade: idade, // Atualiza a idade do usuário
+      cargo: cargo, // Atualiza o cargo do usuário
+    });
+
+    // Limpa os campos de entrada e redefine o estado de edição
+    setNome("");
+    setIdade("");
+    setCargo("");
+    setIsEditing("");
   }
 
   return (
@@ -131,25 +157,35 @@ export default function fire() {
             onChangeText={(text) => setCargo(text)}
           />
 
-          <TouchableOpacity style={styles.button} onPress={handleRegister}>
-            <Text style={styles.buttonText}>Adicionar</Text>
-          </TouchableOpacity>
+          {/* Botão para adicionar ou editar usuário */}
+          {isEditing !== "" ? (
+            <TouchableOpacity style={styles.button} onPress={handleEditUser}>
+              <Text style={styles.buttonText}>Editar usuario</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.button} onPress={handleRegister}>
+              <Text style={styles.buttonText}>Adicionar</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
+
+      {/* Botão para mostrar/esconder formulário */}
       <TouchableOpacity style={{ marginTop: 8 }} onPress={handleToggle}>
         <Text style={{ textAlign: "center", color: "#000" }}>
           {showForm ? "Esconder formulário" : "Mostrar formulário"}
         </Text>
       </TouchableOpacity>
 
-      <Text style={{marginTop: 14, marginLeft: 8, fontSize: 20, color: '#000 '}}>Usuários</Text>
+      {/* Título da lista de usuários */}
+      <Text style={{ marginTop: 14, marginLeft: 8, fontSize: 20, color: '#000 ' }}>Usuários</Text>
 
       {/* Lista de usuários cadastrados */}
       <FlatList
         style={styles.list}
         data={users} // Dados da lista de usuários
         keyExtractor={(item) => String(item.id)} // Chave única para cada item da lista
-        renderItem={({item}) => <UsersList data={item}/>} // Renderiza o componente UsersList para cada item
+        renderItem={({ item }) => <UsersList data={item} handleEdit={(item) => editUser(item)} />} // Renderiza o componente UsersList para cada item
       />
     </View>
   );
@@ -183,7 +219,7 @@ const styles = StyleSheet.create({
     marginBottom: 4, // Margem inferior para o rótulo
     marginLeft: 8, // Margem esquerda para o rótulo
   },
-  list:{
+  list: {
     marginTop: 8, // Margem superior para a lista de usuários
     marginLeft: 8, // Margem esquerda para a lista de usuários
     marginRight: 8, // Margem direita para a lista de usuários
