@@ -1,75 +1,65 @@
-// Componente UsersList para exibir e deletar usuários
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
 
-import { db } from './firebaseConnection';
-import { deleteDoc, doc } from 'firebase/firestore';
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native'
+import { db } from './firebaseConnection'
+import { deleteDoc, doc } from 'firebase/firestore'
 
-export function UsersList({ data, handleEdit }) {
-  // Função assíncrona para deletar um usuário
-  async function handleDeleteItem() {
-    const docRef = doc(db, "users", data.id); // Referência ao documento do usuário no Firestore
-    await deleteDoc(docRef); // Deletando o documento do Firestore
+export function UsersList({ data, handleEdit }){
+
+  async function handleDeleteItem(){ 
+    const docRef = doc(db, "users", data.id)
+    await deleteDoc(docRef)
   }
 
-  // Função para preparar a edição do usuário
-  function handleEditUser() {
+  function handleEditUser(){
     handleEdit(data);
   }
 
-  return (
+
+  return(
     <View style={styles.container}>
       <Text style={styles.item}>Nome: {data.nome}</Text>
       <Text style={styles.item}>Idade: {data.idade}</Text>
       <Text style={styles.item}>Cargo: {data.cargo}</Text>
 
-      {/* Botão para deletar usuário */}
       <TouchableOpacity style={styles.button} onPress={handleDeleteItem}>
         <Text style={styles.buttonText}>Deletar usuario</Text>
       </TouchableOpacity>
 
-      {/* Botão para editar usuário */}
       <TouchableOpacity style={styles.buttonEdit} onPress={handleEditUser}>
-        <Text style={styles.buttonText}>Editar usuario </Text>
+        <Text style={styles.buttonText}>Editar usuario</Text>
       </TouchableOpacity>
     </View>
-  );
+  )
 }
 
-// Estilos para o componente UsersList
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#f0f0f0", // Cor de fundo do container
-    padding: 8, // Espaçamento interno do container
-    borderRadius: 4, // Bordas arredondadas do container
-    marginBottom: 14, // Margem inferior do container
+  container:{
+    backgroundColor: "#f0f0f0",
+    padding: 8,
+    borderRadius: 4,
+    marginBottom: 14,
   },
-  item: {
-    color: "#000", // Cor do texto do item
-    fontSize: 16, // Tamanho da fonte do texto do item
+  item:{
+    color: "#000",
+    fontSize: 16,
   },
-  button: {
-    backgroundColor: "#b3261e", // Cor de fundo do botão
-    alignSelf: "flex-start", // Alinhamento do botão
-    padding: 4, // Espaçamento interno do botão
-    borderRadius: 4, // Bordas arredondadas do botão
-    marginTop: 16, // Margem superior do botão
+  button:{
+    backgroundColor: "#B3261E",
+    alignSelf: "flex-start",
+    padding: 4,
+    borderRadius: 4,
+    marginTop: 16
   },
   buttonText: {
-    color: "#fff", // Cor do texto
-    paddingLeft: 8, // Espaçamento à esquerda do texto do botão
-    paddingRight: 8, // Espaçamento à direita do texto do botão
+    color: "#FFF",
+    paddingLeft: 8,
+    paddingRight: 8,
   },
-  buttonEdit: {
-    backgroundColor: "#000", // Cor de fundo do botão
-    alignSelf: "flex-start", // Alinhamento do botão
-    padding: 4, // Espaçamento interno do botão
-    borderRadius: 4, // Bordas arredondadas do botão
-    marginTop: 16, // Margem superior do botão
-  },
-});
+  buttonEdit:{
+    backgroundColor: "#000",
+    alignSelf: "flex-start",
+    padding: 4,
+    borderRadius: 4,
+    marginTop: 16
+  }
+})
