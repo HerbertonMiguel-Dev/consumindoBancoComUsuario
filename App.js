@@ -8,6 +8,7 @@ export default function App() {
   const [email, setEmail] = useState(""); // Estado para armazenar o email
   const [password, setPassword] = useState(""); // Estado para armazenar a senha
   const [authUser, setAuthUser] = useState(null); // Estado para armazenar o usuário autenticado
+  const [loading, setLoading] = useState(true) // Estado para controlar o carregamento
 
   // useEffect para verificar o estado de autenticação quando o componente é montado
   useEffect(() => {
@@ -17,8 +18,15 @@ export default function App() {
           email: user.email, // Atualiza o estado com o email do usuário
           uid: user.uid // Atualiza o estado com o UID do usuário
         });
+
+        setLoading(false) // Define o estado de carregamento como falso
         return;
       }
+
+      setAuthUser(null); // Define o usuário autenticado como nulo se não houver usuário
+      setLoading(false); // Define o estado de carregamento como falso
+
+
     });
   }, []); // A lista de dependências vazia significa que o efeito só roda uma vez, quando o componente é montado
 
@@ -33,6 +41,7 @@ export default function App() {
     signInWithEmailAndPassword(auth, email, password) // Faz o login com email e senha
       .then((user) => {
         console.log(user); // Loga os detalhes do usuário autenticado no console
+        alert("Usuário logado com sucesso");
         setAuthUser({
           email: user.user.email, // Atualiza o estado com o email do usuário
           uid: user.user.uid // Atualiza o estado com o UID do usuário
@@ -54,15 +63,23 @@ export default function App() {
   // Função assíncrona para fazer logout do usuário
   async function handleLogout() {
     await signOut(auth); // Faz o logout do usuário
+
     setAuthUser(null); // Reseta o estado do usuário autenticado
+  }
+
+  // Se o usuário estiver autenticado, exibe o componente FormUsers
+  if(authUser){
+    return(
+      <View style={styles.container}>
+        <FormUsers/>
+      </View>
+    )
   }
 
   return (
     <View style={styles.container}>
-      {/* Exibindo o email do usuário autenticado */}
-      <Text style={{ fontSize: 16, color:'#000', marginLeft: 8, marginBottom: 14 }}>
-        Usuário logado: {authUser && authUser.email}
-      </Text>
+    
+    {loading && <Text style={{fontSize: 20, backgroundColor: '#000', marginLeft: 8, marginBottom: 8}}>Carregando informações...</Text>}
 
       {/* Campo de entrada para o email */}
       <Text style={{ marginLeft: 8, fontSize: 18, color: "#000" }}>Email:</Text>
@@ -93,10 +110,12 @@ export default function App() {
         <Text style={styles.buttonText}>Criar uma conta</Text>
       </TouchableOpacity>
 
-      {/* Botão para fazer logout */}
+      {authUser && (
+        //  Botão para fazer logout 
       <TouchableOpacity style={[styles.button, { backgroundColor: 'red' }]} onPress={handleLogout}>
         <Text style={styles.buttonText}>Sair da conta</Text>
       </TouchableOpacity>
+      )}
     </View>
   );
 }
